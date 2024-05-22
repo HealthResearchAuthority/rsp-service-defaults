@@ -1,20 +1,22 @@
 # Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+---
+Creating cloud-native applications demands thorough configuration to ensure they operate consistently and securely in various environments. .NET Aspire offers numerous helper methods and tools that simplify the management of settings for OpenTelemetry, health checks, environment variables, and other aspects, making the process more efficien.
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+# Service Defaults
+---
+ This project is intented to be used for .NET Aspire based development. This is a shared project and will be referenced by many other projects to provide a common set of services to all projects. For example, when building an API, you call the AddServiceDefaults method in the Program.cs file of your WebApi project. Similary, when building a WebApplication using MVC/Razor pages etc, you call the AddServiceDefaults method in the program.cs file of your WebApplication.
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+ ```charp
+ builder.AddServiceDefaults();
+ ```
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+ The AddServiceDefaults method handles the following concerns:
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+- Configures OpenTelemetry metrics and tracing.
+- Add default health check endpoints.
+- Add service discovery functionality.
+- Configures HttpClient to work with service discovery.
+
+You can customise the `Extensions.cs` file to add more capabiliteis as needed. For example Serilog functionality has been added to it, so it will be available to all projects that need it by referencing the project and calling the above method.
+
+For more details, please refer to [.NET Aspire service defaults](https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/service-defaults#custom-service-defaults) documentation.
