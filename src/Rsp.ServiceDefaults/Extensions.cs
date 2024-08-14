@@ -19,9 +19,9 @@ public static class Extensions
 {
     public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder)
     {
-        builder.ConfigureSerilog();
-
         builder.ConfigureOpenTelemetry();
+
+        builder.ConfigureSerilog();
 
         builder.AddDefaultHealthChecks();
 
