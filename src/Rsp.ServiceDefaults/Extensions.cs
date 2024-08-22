@@ -9,6 +9,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Sinks.OpenTelemetry;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 
 namespace Rsp.ServiceDefaults;
 
@@ -77,12 +78,12 @@ public static class Extensions
         }
 
         // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
-        // if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
-        // '{'
-        //    builder.Services
-        //      .AddOpenTelemetry()
-        //      .UseAzureMonitor()
-        // '}'
+        if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+         {
+            builder.Services
+              .AddOpenTelemetry()
+              .UseAzureMonitor();
+         }
 
         return builder;
     }
