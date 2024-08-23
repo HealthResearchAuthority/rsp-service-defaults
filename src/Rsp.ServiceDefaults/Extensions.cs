@@ -1,3 +1,4 @@
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,8 +9,6 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Serilog;
-using Serilog.Sinks.OpenTelemetry;
-using Azure.Monitor.OpenTelemetry.AspNetCore;
 
 namespace Rsp.ServiceDefaults;
 
@@ -79,11 +78,11 @@ public static class Extensions
 
         // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
         if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
-         {
+        {
             builder.Services
               .AddOpenTelemetry()
               .UseAzureMonitor();
-         }
+        }
 
         return builder;
     }
@@ -124,63 +123,8 @@ public static class Extensions
         {
             config
                 .ReadFrom.Configuration(builder.Configuration)
-                .WriteTo.OpenTelemetry(options =>
-                {
-                    options.IncludedData = IncludedData.TraceIdField | IncludedData.SpanIdField;
-                    var otelEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
-                    var otelHeaders = builder.Configuration["OTEL_EXPORTER_OTLP_HEADERS"];
-                    var otelResoureAttributes = builder.Configuration["OTEL_RESOURCE_ATTRIBUTES"];
-
-                    if (!string.IsNullOrWhiteSpace(otelEndpoint))
-                    {
-                        options.Endpoint = otelEndpoint;
-
-                        if (!string.IsNullOrWhiteSpace(otelHeaders))
-                        {
-                            AddHeaders(options.Headers, otelHeaders);
-                        }
-
-                        if (!string.IsNullOrWhiteSpace(otelResoureAttributes))
-                        {
-                            AddResourceAttributes(options.ResourceAttributes, otelResoureAttributes);
-                        }
-                    }
-
-                    void AddHeaders(IDictionary<string, string> headers, string headerConfig)
-                    {
-                        if (!string.IsNullOrEmpty(headerConfig))
-                        {
-                            foreach (var header in headerConfig.Split(','))
-                            {
-                                var parts = header.Split('=');
-                                if (parts.Length == 2)
-                                {
-                                    headers[parts[0]] = parts[1];
-                                }
-                                else
-                                {
-                                    throw new InvalidOperationException($"Invalid header format: {header}");
-                                }
-                            }
-                        }
-                    }
-
-                    void AddResourceAttributes(IDictionary<string, object> attributes, string attributeConfig)
-                    {
-                        if (!string.IsNullOrEmpty(attributeConfig))
-                        {
-                            var parts = attributeConfig.Split('=');
-                            if (parts.Length == 2)
-                            {
-                                attributes[parts[0]] = parts[1];
-                            }
-                            else
-                            {
-                                throw new InvalidOperationException($"Invalid resource attribute format: {attributeConfig}");
-                            }
-                        }
-                    }
-                }).Enrich.WithCorrelationIdHeader();
+                .WriteTo.OpenTelemetry()
+                .Enrich.WithCorrelationIdHeader();
         });
 
         return builder;
