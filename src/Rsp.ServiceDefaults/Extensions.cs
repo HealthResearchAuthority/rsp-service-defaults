@@ -77,9 +77,13 @@ public static class Extensions
         {
             builder.Services
                 .AddOpenTelemetry()
-                .WithLogging(logging => logging.AddConsoleExporter())
                 .UseOtlpExporter();
         }
+
+        // send telemetry logs to console
+        builder.Services
+            .AddOpenTelemetry()
+            .WithLogging(logging => logging.AddConsoleExporter());
 
         var azureMonitorConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
 
@@ -94,7 +98,6 @@ public static class Extensions
 
             builder.Services
               .AddOpenTelemetry()
-              .WithLogging(logging => logging.AddConsoleExporter())
               .WithMetrics(metrics => metrics.AddAzureMonitorMetricExporter(options => options.ConnectionString = azureMonitorConnectionString))
               .WithTracing(tracing => tracing.AddAzureMonitorTraceExporter(options => options.ConnectionString = azureMonitorConnectionString))
               .UseAzureMonitor(monitor => monitor.ConnectionString = azureMonitorConnectionString);
