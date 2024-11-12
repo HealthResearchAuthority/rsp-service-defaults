@@ -7,7 +7,6 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
-using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Serilog;
@@ -89,9 +88,9 @@ public static class Extensions
         {
             builder.Services
               .AddOpenTelemetry()
-              .WithLogging(logging => logging.AddOtlpExporter())
-              .WithMetrics(metrics => metrics.AddAzureMonitorMetricExporter())
-              .WithTracing(tracing => tracing.AddAzureMonitorTraceExporter())
+              //.WithLogging(logging => logging.AddOtlpExporter())
+              //.WithMetrics(metrics => metrics.AddAzureMonitorMetricExporter())
+              //.WithTracing(tracing => tracing.AddAzureMonitorTraceExporter())
               .UseAzureMonitor();
 
             builder.Logging.AddOpenTelemetry(logging =>
