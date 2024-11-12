@@ -1,4 +1,5 @@
 using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Serilog;
@@ -73,14 +75,28 @@ public static class Extensions
 
         if (useOtlpExporter)
         {
-            builder.Services.AddOpenTelemetry().UseOtlpExporter();
+            builder.Services
+                .AddOpenTelemetry()
+                .WithLogging(logging => logging.AddConsoleExporter())
+                .UseOtlpExporter();
         }
 
+        var azureMonitorConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+
         // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
-        if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+        if (!string.IsNullOrWhiteSpace(azureMonitorConnectionString))
         {
+            builder.Logging.AddOpenTelemetry(logging =>
+            {
+                // send logs to Azure Monitor
+                logging.AddAzureMonitorLogExporter(options => options.ConnectionString = azureMonitorConnectionString);
+            });
+
             builder.Services
               .AddOpenTelemetry()
+              .WithLogging(logging => logging.AddConsoleExporter())
+              .WithMetrics(metrics => metrics.AddAzureMonitorMetricExporter())
+              .WithTracing(tracing => tracing.AddAzureMonitorTraceExporter())
               .UseAzureMonitor();
         }
 
