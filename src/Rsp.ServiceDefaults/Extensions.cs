@@ -52,13 +52,15 @@ public static class Extensions
         builder.Services.AddOpenTelemetry()
             .WithMetrics(metrics =>
             {
-                metrics.AddAspNetCoreInstrumentation()
+                metrics
+                    .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation();
             })
             .WithTracing(tracing =>
             {
-                tracing.AddAspNetCoreInstrumentation()
+                tracing
+                    .AddAspNetCoreInstrumentation()
                     // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                     //.AddGrpcClientInstrumentation()
                     .AddHttpClientInstrumentation();
@@ -80,27 +82,23 @@ public static class Extensions
                 .UseOtlpExporter();
         }
 
-        // send telemetry logs to console
-        builder.Services
-            .AddOpenTelemetry()
-            .WithLogging(logging => logging.AddConsoleExporter());
-
         var azureMonitorConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
 
         // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
         if (!string.IsNullOrWhiteSpace(azureMonitorConnectionString))
         {
+            builder.Services
+              .AddOpenTelemetry()
+              .WithLogging(logging => logging.AddOtlpExporter())
+              .WithMetrics(metrics => metrics.AddAzureMonitorMetricExporter())
+              .WithTracing(tracing => tracing.AddAzureMonitorTraceExporter())
+              .UseAzureMonitor();
+
             builder.Logging.AddOpenTelemetry(logging =>
             {
                 // send logs to Azure Monitor
-                logging.AddAzureMonitorLogExporter(options => options.ConnectionString = azureMonitorConnectionString);
+                logging.AddAzureMonitorLogExporter();
             });
-
-            builder.Services
-              .AddOpenTelemetry()
-              .WithMetrics(metrics => metrics.AddAzureMonitorMetricExporter(options => options.ConnectionString = azureMonitorConnectionString))
-              .WithTracing(tracing => tracing.AddAzureMonitorTraceExporter(options => options.ConnectionString = azureMonitorConnectionString))
-              .UseAzureMonitor(monitor => monitor.ConnectionString = azureMonitorConnectionString);
         }
 
         return builder;
