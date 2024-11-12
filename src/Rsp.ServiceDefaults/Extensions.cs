@@ -95,9 +95,9 @@ public static class Extensions
             builder.Services
               .AddOpenTelemetry()
               .WithLogging(logging => logging.AddConsoleExporter())
-              .WithMetrics(metrics => metrics.AddAzureMonitorMetricExporter())
-              .WithTracing(tracing => tracing.AddAzureMonitorTraceExporter())
-              .UseAzureMonitor();
+              .WithMetrics(metrics => metrics.AddAzureMonitorMetricExporter(options => options.ConnectionString = azureMonitorConnectionString))
+              .WithTracing(tracing => tracing.AddAzureMonitorTraceExporter(options => options.ConnectionString = azureMonitorConnectionString))
+              .UseAzureMonitor(monitor => monitor.ConnectionString = azureMonitorConnectionString);
         }
 
         return builder;
