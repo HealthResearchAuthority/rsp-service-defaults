@@ -166,7 +166,7 @@ public static class Extensions
             {
                 // only write to AppInsights for portal, the logs from other
                 // microservices will be written to AppInsights via OpenTelemetry
-                config.WriteTo.Conditional("ApplicationName == 'IRAS Web Portal'", sinkConfig =>
+                config.WriteTo.Conditional("ApplicationName = 'IRAS Web Portal'", sinkConfig =>
                 {
                     sinkConfig.ApplicationInsights
                     (
