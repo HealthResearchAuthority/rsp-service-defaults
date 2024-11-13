@@ -73,6 +73,8 @@ public static class Extensions
 
     private static IHostApplicationBuilder AddOpenTelemetryExporters(this IHostApplicationBuilder builder)
     {
+        // if OTEL exporter endpoint is configured,
+        // add the OpenTelemetry and use the exporter
         var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
 
         if (useOtlpExporter)
@@ -82,10 +84,12 @@ public static class Extensions
                 .UseOtlpExporter();
         }
 
-        var azureMonitorConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+        // if Azure ApplicationInsights ConnectionString is configured
+        // export the metrics, traces and logs to it.
+        // The ConnectionString will be read automatically from the environment variable
+        var useAppInsights = !string.IsNullOrWhiteSpace(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]);
 
-        // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
-        if (!string.IsNullOrWhiteSpace(azureMonitorConnectionString))
+        if (useAppInsights)
         {
             builder.Services
               .AddOpenTelemetry()
@@ -145,6 +149,8 @@ public static class Extensions
                 .ReadFrom.Configuration(builder.Configuration)
                 .Enrich.WithCorrelationIdHeader();
 
+            // if OTEL exporter endpoint is configured,
+            // configure Serilog to write to it.
             var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
 
             if (useOtlpExporter)
@@ -152,15 +158,22 @@ public static class Extensions
                 config.WriteTo.OpenTelemetry();
             }
 
-            var azureMonitorConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+            // if ApplicationInsights is configured
+            // configure Serilog to write to it.
+            var useAppInsights = !string.IsNullOrWhiteSpace(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]);
 
-            if (!string.IsNullOrWhiteSpace(azureMonitorConnectionString))
+            if (useAppInsights)
             {
-                config.WriteTo.ApplicationInsights
-                (
-                    serviceProvider.GetRequiredService<TelemetryConfiguration>(),
-                    TelemetryConverter.Traces
-                );
+                // only write to AppInsights for portal, the logs from other
+                // microservices will be written to AppInsights via OpenTelemetry
+                config.WriteTo.Conditional("ApplicationName == 'IRAS Web Portal'", sinkConfig =>
+                {
+                    sinkConfig.ApplicationInsights
+                    (
+                        serviceProvider.GetRequiredService<TelemetryConfiguration>(),
+                        TelemetryConverter.Traces
+                    );
+                });
             }
         });
 
