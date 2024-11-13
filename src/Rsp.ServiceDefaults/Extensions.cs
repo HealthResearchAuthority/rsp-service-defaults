@@ -89,7 +89,6 @@ public static class Extensions
         {
             builder.Services
               .AddOpenTelemetry()
-              .WithLogging(logging => logging.AddOtlpExporter())
               .WithMetrics(metrics => metrics.AddAzureMonitorMetricExporter())
               .WithTracing(tracing => tracing.AddAzureMonitorTraceExporter())
               .UseAzureMonitor();
