@@ -7,7 +7,6 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
-using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 using Serilog;
@@ -139,8 +138,14 @@ public static class Extensions
         {
             config
                 .ReadFrom.Configuration(builder.Configuration)
-                .WriteTo.OpenTelemetry()
                 .Enrich.WithCorrelationIdHeader();
+
+            var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+
+            if (useOtlpExporter)
+            {
+                config.WriteTo.OpenTelemetry();
+            }
         });
 
         return builder;
