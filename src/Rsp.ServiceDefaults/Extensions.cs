@@ -1,5 +1,6 @@
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Azure.Monitor.OpenTelemetry.Exporter;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
@@ -134,6 +135,10 @@ public static class Extensions
     {
         ArgumentNullException.ThrowIfNull(builder);
 
+        builder.Services.AddApplicationInsightsTelemetry();
+
+        var serviceProvider = builder.Services.BuildServiceProvider();
+
         builder.Services.AddSerilog(config =>
         {
             config
@@ -145,6 +150,17 @@ public static class Extensions
             if (useOtlpExporter)
             {
                 config.WriteTo.OpenTelemetry();
+            }
+
+            var azureMonitorConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+
+            if (!string.IsNullOrWhiteSpace(azureMonitorConnectionString))
+            {
+                config.WriteTo.ApplicationInsights
+                (
+                    serviceProvider.GetRequiredService<TelemetryConfiguration>(),
+                    TelemetryConverter.Traces
+                );
             }
         });
 
