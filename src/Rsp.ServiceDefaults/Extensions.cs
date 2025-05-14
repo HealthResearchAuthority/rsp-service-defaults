@@ -1,4 +1,3 @@
-using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
@@ -93,15 +92,16 @@ public static class Extensions
         {
             builder.Services
               .AddOpenTelemetry()
-              .WithMetrics(metrics => metrics.AddAzureMonitorMetricExporter())
-              .WithTracing(tracing => tracing.AddAzureMonitorTraceExporter())
-              .UseAzureMonitor();
+              //.WithMetrics(metrics => metrics.AddAzureMonitorMetricExporter())
+              //.WithTracing(tracing => tracing.AddAzureMonitorTraceExporter())
+              //.WithLogging(logging => logging.AddAzureMonitorLogExporter())
+              .UseAzureMonitorExporter();
 
-            builder.Logging.AddOpenTelemetry(logging =>
-            {
-                // send logs to Azure Monitor
-                logging.AddAzureMonitorLogExporter();
-            });
+            //builder.Logging.AddOpenTelemetry(logging =>
+            //`{`
+            //`   //send logs to Azure Monitor`
+            //`    logging.AddAzureMonitorLogExporter();`
+            //`});`
         }
 
         return builder;
